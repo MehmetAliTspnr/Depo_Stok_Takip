@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Ürün Ekle{% endblock %}
+
+{% block page_title %}Ürün Ekle{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="POST" id="addProductForm">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="product_code" class="form-label">Ürün Kodu</label>
+                        <input type="text" class="form-control" id="product_code" name="product_code" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="barcode" class="form-label">Barkod</label>
+                        <input type="text" class="form-control" id="barcode" name="barcode" required>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Ürün Adı</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Kategori</label>
+                        <input type="text" class="form-control" id="category" name="category" required>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="unit" class="form-label">Birim</label>
+                        <select class="form-select" id="unit" name="unit" required>
+                            <option value="Adet">Adet</option>
+                            <option value="Kg">Kg</option>
+                            <option value="Litre">Litre</option>
+                            <option value="Metre">Metre</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Miktar</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" min="0" required>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="unit_cost" class="form-label">Birim Maliyet (TL)</label>
+                        <input type="number" class="form-control" id="unit_cost" name="unit_cost" step="0.01" min="0" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Açıklama</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Ürün Ekle</button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const barcodeInput = document.getElementById('barcode');
+    const productCodeInput = document.getElementById('product_code');
+    const nameInput = document.getElementById('name');
+    const categoryInput = document.getElementById('category');
+    const unitSelect = document.getElementById('unit');
+    const quantityInput = document.getElementById('quantity');
+    const unitCostInput = document.getElementById('unit_cost');
+    const descriptionInput = document.getElementById('description');
+    
+    let checkTimeout;
+    
+    async function checkExistingProduct(value, type) {
+        try {
+            const response = await fetch(`/check_product?${type}=${encodeURIComponent(value)}`);
+            const data = await response.json();
+            
+            if (data.exists) {
+                // Ürün bulundu, alanları doldur
+                barcodeInput.value = data.product.barcode;
+                productCodeInput.value = data.product.product_code;
+                nameInput.value = data.product.name;
+                categoryInput.value = data.product.category;
+                unitSelect.value = data.product.unit;
+                
+                // Birim maliyet ve açıklama alanlarını temizle
+                unitCostInput.value = '';
+                descriptionInput.value = '';
+                
+                // Miktar alanını 0 olarak ayarla
+                quantityInput.value = '0';
+                
+                // Kullanıcıya bilgi ver
+                alert('Bu ürün zaten mevcut. Lütfen birim maliyet ve açıklama bilgilerini giriniz.');
+            }
+        } catch (error) {
+            console.error('Ürün kontrolü sırasında hata:', error);
+        }
+    }
+    
+    function debounce(func, wait) {
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(checkTimeout);
+                func(...args);
+            };
+            clearTimeout(checkTimeout);
+            checkTimeout = setTimeout(later, wait);
+        };
+    }
+    
+    const debouncedCheckBarcode = debounce((value) => {
+        if (value.length > 0) {
+            checkExistingProduct(value, 'barcode');
+        }
+    }, 500);
+    
+    const debouncedCheckProductCode = debounce((value) => {
+        if (value.length > 0) {
+            checkExistingProduct(value, 'product_code');
+        }
+    }, 500);
+    
+    barcodeInput.addEventListener('input', (e) => {
+        debouncedCheckBarcode(e.target.value);
+    });
+    
+    productCodeInput.addEventListener('input', (e) => {
+        debouncedCheckProductCode(e.target.value);
+    });
+});
+</script>
+{% endblock %} 

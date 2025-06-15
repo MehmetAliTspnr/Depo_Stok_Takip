@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stok Takip - Arama Sonuçları</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+            padding-top: 20px;
+        }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            display: block;
+        }
+        .sidebar a:hover {
+            background-color: #495057;
+        }
+        .content {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar">
+                <h3 class="text-white text-center mb-4">Stok Takip</h3>
+                <a href="{{ url_for('dashboard') }}"><i class="bi bi-speedometer2"></i> Panel</a>
+                <a href="{{ url_for('add_product') }}"><i class="bi bi-plus-circle"></i> Ürün Ekle</a>
+                <a href="{{ url_for('stock_movement') }}"><i class="bi bi-arrow-left-right"></i> Stok Hareketi</a>
+                <a href="{{ url_for('search_product') }}"><i class="bi bi-search"></i> Ürün Ara</a>
+                <a href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Çıkış</a>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 content">
+                <h2 class="mb-4">Arama Sonuçları</h2>
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-info">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <div class="card">
+                    <div class="card-body">
+                        {% if products %}
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Ürün Kodu</th>
+                                            <th>Barkod</th>
+                                            <th>Ürün Adı</th>
+                                            <th>Kategori</th>
+                                            <th>Reyon Miktarı</th>
+                                            <th>Depo Miktarı</th>
+                                            <th>Toplam Miktar</th>
+                                            <th>Birim</th>
+                                            <th>Birim Maliyet</th>
+                                            <th>Toplam Değer</th>
+                                            <th>Son Güncelleme</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for product in products %}
+                                        <tr {% if product.quantity <= product.minimum_stock_level %}class="table-danger"{% endif %}>
+                                            <td>{{ product.product_code }}</td>
+                                            <td>{{ product.barcode }}</td>
+                                            <td>{{ product.name }}</td>
+                                            <td>{{ product.category }}</td>
+                                            <td>{{ product.reyon_quantity }}</td>
+                                            <td>{{ product.depo_quantity }}</td>
+                                            <td>{{ product.quantity }}</td>
+                                            <td>{{ product.unit }}</td>
+                                            <td>{{ "%.2f"|format(product.unit_cost) }} TL</td>
+                                            <td>{{ "%.2f"|format(product.quantity * product.unit_cost) }} TL</td>
+                                            <td>{{ product.updated_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                Arama kriterlerine uygun ürün bulunamadı.
+                            </div>
+                        {% endif %}
+                        <a href="{{ url_for('search_product') }}" class="btn btn-primary">Yeni Arama</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

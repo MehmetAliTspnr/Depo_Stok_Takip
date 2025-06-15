@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stok Takip - Ürün Ara</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+            padding-top: 20px;
+        }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            display: block;
+        }
+        .sidebar a:hover {
+            background-color: #495057;
+        }
+        .content {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar">
+                <h3 class="text-white text-center mb-4">Stok Takip</h3>
+                <a href="{{ url_for('dashboard') }}"><i class="bi bi-speedometer2"></i> Panel</a>
+                <a href="{{ url_for('add_product') }}"><i class="bi bi-plus-circle"></i> Ürün Ekle</a>
+                <a href="{{ url_for('stock_movement') }}"><i class="bi bi-arrow-left-right"></i> Stok Hareketi</a>
+                <a href="{{ url_for('search_product') }}"><i class="bi bi-search"></i> Ürün Ara</a>
+                <a href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Çıkış</a>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 content">
+                <h2 class="mb-4">Ürün Ara</h2>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} {% if 'sound-alert' in category %}sound-alert{% endif %}" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <div class="card">
+                    <div class="card-body">
+                        <form method="GET" class="mb-4">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" name="search" class="form-control" placeholder="Ürün adı, barkod veya ürün kodu ile ara..." value="{{ request.args.get('search', '') }}">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-primary">Ara</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        {% if products %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Ürün Kodu</th>
+                                        <th>Barkod</th>
+                                        <th>Ürün Adı</th>
+                                        <th>Kategori</th>
+                                        <th>Toplam Stok</th>
+                                        <th>Reyon Stok</th>
+                                        <th>Depo Stok</th>
+                                        <th>Birim</th>
+                                        <th>Birim Maliyet</th>
+                                        <th>Durum</th>
+                                        <th>İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for product in products %}
+                                    <tr {% if product.depo_quantity <= product.minimum_stock_level %}class="table-danger"{% endif %}>
+                                        <td>{{ product.product_code }}</td>
+                                        <td>{{ product.barcode }}</td>
+                                        <td>{{ product.name }}</td>
+                                        <td>{{ product.category }}</td>
+                                        <td>{{ product.quantity }}</td>
+                                        <td {% if product.reyon_quantity <= product.minimum_stock_level %}class="text-danger"{% endif %}>{{ product.reyon_quantity }}</td>
+                                        <td {% if product.depo_quantity <= product.minimum_stock_level %}class="text-danger"{% endif %}>{{ product.depo_quantity }}</td>
+                                        <td>{{ product.unit }}</td>
+                                        <td>{{ "%.2f"|format(product.unit_cost) }} TL</td>
+                                        <td>
+                                            {% if product.depo_quantity <= product.minimum_stock_level %}
+                                            <span class="badge bg-danger">Kritik Depo Stok</span>
+                                            {% elif product.reyon_quantity <= product.minimum_stock_level %}
+                                            <span class="badge bg-warning">Kritik Reyon Stok</span>
+                                            {% else %}
+                                            <span class="badge bg-success">Normal</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ product.id }}">
+                                                <i class="bi bi-trash"></i> Sil
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Silme Onay Modalı -->
+                                    <div class="modal fade" id="deleteModal{{ product.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ product.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="deleteModalLabel{{ product.id }}">Ürün Silme Onayı</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p><strong>{{ product.name }}</strong> ürününü silmek istediğinizden emin misiniz?</p>
+                                                    <p class="text-danger">Bu işlem geri alınamaz ve ürüne ait tüm stok hareketleri ve satış kayıtları silinecektir.</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                                                    <form action="{{ url_for('delete_product', product_id=product.id) }}" method="POST" style="display: inline;">
+                                                        <button type="submit" class="btn btn-danger">Sil</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            {% if request.args.get('search') %}
+                                Arama kriterlerine uygun ürün bulunamadı.
+                            {% else %}
+                                Henüz ürün eklenmemiş.
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

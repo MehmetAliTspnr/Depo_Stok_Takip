@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Stok Takip - Stok Hareketi{% endblock %}
+
+{% block page_title %}Stok Hareketi{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="product_id" class="form-label">Ürün</label>
+                    <select class="form-select" id="product_id" name="product_id" required>
+                        <option value="">Ürün Seçiniz</option>
+                        {% for product in products %}
+                        <option value="{{ product.id }}">{{ product.name }} ({{ product.product_code }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="movement_type" class="form-label">Hareket Tipi</label>
+                    <select class="form-select" id="movement_type" name="movement_type" required>
+                        <option value="">Seçiniz</option>
+                        <option value="Depodan Reyona">Depodan Reyona</option>
+                        <option value="Reyondan Depoya">Reyondan Depoya</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="quantity" class="form-label">Miktar</label>
+                    <input type="number" class="form-control" id="quantity" name="quantity" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="description" class="form-label">Açıklama</label>
+                    <input type="text" class="form-control" id="description" name="description" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Hareketi Kaydet</button>
+        </form>
+    </div>
+</div>
+{% endblock %} 

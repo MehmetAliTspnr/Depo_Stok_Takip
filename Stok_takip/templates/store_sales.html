@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Mağaza Satışları{% endblock %}
+
+{% block page_title %}Mağaza Satışları{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Mağaza Satışı</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="form-group mb-3">
+                <label for="product_id">Ürün</label>
+                <select class="form-control" id="product_id" name="product_id" required>
+                    <option value="">Ürün Seçin</option>
+                    {% for product in products %}
+                    <option value="{{ product.id }}" data-stock="{{ product.depo_quantity }}" data-cost="{{ product.unit_cost }}">
+                        {{ product.name }} (Depo Stok: {{ product.depo_quantity }} {{ product.unit }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group mb-3">
+                <label for="quantity">Miktar</label>
+                <input type="number" class="form-control" id="quantity" name="quantity" min="1" required>
+                <small class="form-text text-muted">Mevcut depo stok: <span id="current_stock">0</span></small>
+            </div>
+            <div class="form-group mb-3">
+                <label for="sale_price">Satış Fiyatı (TL)</label>
+                <input type="number" class="form-control" id="sale_price" name="sale_price" step="0.01" required>
+                <small class="form-text text-muted">Birim maliyet: <span id="unit_cost">0</span> TL</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Satış Yap</button>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title">Son Satışlar</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Ürün</th>
+                        <th>Miktar</th>
+                        <th>Birim Fiyat</th>
+                        <th>Toplam Tutar</th>
+                        <th>Toplam Maliyet</th>
+                        <th>Kar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in sales %}
+                    <tr>
+                        <td>{{ sale.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>{{ sale.product.name }}</td>
+                        <td>{{ sale.quantity }} {{ sale.product.unit }}</td>
+                        <td>{{ "%.2f"|format(sale.sale_price) }} TL</td>
+                        <td>{{ "%.2f"|format(sale.total_amount) }} TL</td>
+                        <td>{{ "%.2f"|format(sale.total_cost) }} TL</td>
+                        <td class="text-success">{{ "%.2f"|format(sale.profit) }} TL</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('product_id').addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const stock = selectedOption.getAttribute('data-stock');
+    const cost = selectedOption.getAttribute('data-cost');
+    
+    document.getElementById('current_stock').textContent = stock;
+    document.getElementById('unit_cost').textContent = cost;
+    
+    // Maksimum miktarı ayarla
+    const quantityInput = document.getElementById('quantity');
+    quantityInput.max = stock;
+    quantityInput.value = '';
+});
+
+document.getElementById('quantity').addEventListener('input', function() {
+    const max = parseInt(this.max);
+    const value = parseInt(this.value);
+    
+    if (value > max) {
+        this.value = max;
+        alert('Depoda yeterli stok yok!');
+    }
+});
+</script>
+{% endblock %} 

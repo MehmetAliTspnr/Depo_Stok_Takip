@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Finans{% endblock %}
+
+{% block page_title %}Finans{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Stok Değerleri</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <tr>
+                            <th>Toplam Stok Değeri:</th>
+                            <td>{{ "%.2f"|format(total_stock_value) }} TL</td>
+                        </tr>
+                        <tr>
+                            <th>Reyon Stok Değeri:</th>
+                            <td>{{ "%.2f"|format(reyon_stock_value) }} TL</td>
+                        </tr>
+                        <tr>
+                            <th>Depo Stok Değeri:</th>
+                            <td>{{ "%.2f"|format(depo_stock_value) }} TL</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Satış İstatistikleri</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <tr>
+                            <th>Toplam Satış:</th>
+                            <td>{{ "%.2f"|format(total_sales) }} TL</td>
+                        </tr>
+                        <tr>
+                            <th>Toplam Maliyet:</th>
+                            <td>{{ "%.2f"|format(total_cost) }} TL</td>
+                        </tr>
+                        <tr>
+                            <th>Toplam Kar:</th>
+                            <td class="{% if total_profit > 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ "%.2f"|format(total_profit) }} TL
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Kar Oranı:</th>
+                            <td class="{% if total_profit > 0 %}text-success{% else %}text-danger{% endif %}">
+                                {% if total_cost > 0 %}
+                                    {{ "%.2f"|format((total_profit / total_cost) * 100) }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Ürün Bazlı Detaylı Bilgiler</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Ürün</th>
+                        <th>Toplam Stok</th>
+                        <th>Reyon Stok</th>
+                        <th>Depo Stok</th>
+                        <th>Birim Maliyet</th>
+                        <th>Toplam Stok Değeri</th>
+                        <th>Reyon Stok Değeri</th>
+                        <th>Depo Stok Değeri</th>
+                        <th>Toplam Satış</th>
+                        <th>Toplam Maliyet</th>
+                        <th>Kar</th>
+                        <th>Kar Oranı</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detail in product_details %}
+                    <tr>
+                        <td>{{ detail.name }}</td>
+                        <td>{{ detail.total_stock }}</td>
+                        <td>{{ detail.reyon_stock }}</td>
+                        <td>{{ detail.depo_stock }}</td>
+                        <td>{{ "%.2f"|format(detail.unit_cost) }} TL</td>
+                        <td>{{ "%.2f"|format(detail.total_stock_value) }} TL</td>
+                        <td>{{ "%.2f"|format(detail.reyon_stock_value) }} TL</td>
+                        <td>{{ "%.2f"|format(detail.depo_stock_value) }} TL</td>
+                        <td>{{ "%.2f"|format(detail.total_sales) }} TL</td>
+                        <td>{{ "%.2f"|format(detail.total_cost) }} TL</td>
+                        <td class="{% if detail.profit > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ "%.2f"|format(detail.profit) }} TL
+                        </td>
+                        <td class="{% if detail.profit > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {% if detail.total_cost > 0 %}
+                                {{ "%.2f"|format((detail.profit / detail.total_cost) * 100) }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} 

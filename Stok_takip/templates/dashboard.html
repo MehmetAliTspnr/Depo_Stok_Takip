@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Stok Takip - Panel{% endblock %}
+
+{% block page_title %}Stok Durumu{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Stok Durumu</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Ürün Kodu</th>
+                            <th>Barkod</th>
+                            <th>Ürün Adı</th>
+                            <th>Kategori</th>
+                            <th>Toplam Stok</th>
+                            <th>Reyon Stok</th>
+                            <th>Depo Stok</th>
+                            <th>Birim</th>
+                            <th>Birim Maliyet</th>
+                            <th>Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr {% if product.depo_quantity <= product.minimum_stock_level %}class="table-danger"{% endif %}>
+                            <td>{{ product.product_code }}</td>
+                            <td>{{ product.barcode }}</td>
+                            <td>{{ product.name }}</td>
+                            <td>{{ product.category }}</td>
+                            <td>{{ product.quantity }}</td>
+                            <td {% if product.reyon_quantity <= product.minimum_stock_level %}class="text-danger"{% endif %}>{{ product.reyon_quantity }}</td>
+                            <td {% if product.depo_quantity <= product.minimum_stock_level %}class="text-danger"{% endif %}>{{ product.depo_quantity }}</td>
+                            <td>{{ product.unit }}</td>
+                            <td>{{ "%.2f"|format(product.unit_cost) }} TL</td>
+                            <td>
+                                {% if product.depo_quantity <= product.minimum_stock_level %}
+                                <span class="badge bg-danger">Kritik Depo Stok</span>
+                                {% elif product.reyon_quantity <= product.minimum_stock_level %}
+                                <span class="badge bg-warning">Kritik Reyon Stok</span>
+                                {% else %}
+                                <span class="badge bg-success">Normal</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ses uyarısı için JavaScript kodu -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Kritik stok kontrolü
+    const criticalRows = document.querySelectorAll('tr.table-danger');
+    if (criticalRows.length > 0) {
+        // Ses dosyasını oluştur
+        const audio = new Audio();
+        audio.src = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU" + Array(1000).join("123");
+        
+        // Ses çalma fonksiyonu
+        function playAlert() {
+            audio.play().catch(function(error) {
+                console.log("Ses çalma hatası:", error);
+            });
+        }
+        
+        // Sadece bir kez uyarıyı çal
+        playAlert();
+    }
+});
+</script>
+{% endblock %} 
